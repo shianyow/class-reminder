@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>上課提醒</title>
+    <style>
+        /* 全局樣式 */
+        body {
+            font-family: 'Noto Sans TC', Arial, sans-serif;
+            background-color: #003f7d; /* 深藍色背景 */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: #ffffff; /* 白色字體 */
+        }
+
+        /* 容器樣式 */
+        .container {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 1200px;
+            width: 90%;
+        }
+
+        /* 提醒樣式 */
+        .reminder {
+            font-size: 8em; /* 放大字體 */
+            font-weight: bold;
+            margin-bottom: 40px;
+        }
+
+        /* 時間文字樣式 */
+        .time {
+            cursor: pointer; /* 提示用戶時間可點擊 */
+            border-bottom: 2px dashed transparent; /* 虛線下劃線 */
+        }
+
+        .time:hover {
+            border-bottom: 2px dashed #ffffff; /* 鼠標懸停時顯示下劃線 */
+        }
+
+        /* 提示訊息樣式 */
+        .note {
+            font-size: 4em; /* 放大字體 */
+            margin-bottom: 40px;
+        }
+
+        /* 時鐘樣式 */
+        .clock {
+            font-size: 8em; /* 放大字體 */
+            font-family: 'Courier New', Courier, monospace; /* 等寬字體，電子感 */
+            color: #ffcc00; /* 時鐘數字使用黃色 */
+            text-shadow: 0 0 15px #ffcc00, 0 0 30px #ffcc00; /* 光暈效果 */
+            margin: 0 auto; /* 時鐘居中 */
+        }
+
+        /* 隱藏的輸入框 */
+        .time-input {
+            font-size: 2em; /* 與時間字體大小相近 */
+            padding: 5px 10px;
+            border: 2px solid #ffffff;
+            border-radius: 5px;
+            color: #003f7d;
+            background-color: #ffffff; /* 白底低調顯示 */
+            position: absolute;
+            bottom: 20px; /* 放置右下角 */
+            right: 20px; /* 放置右下角 */
+            display: none; /* 初始隱藏 */
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="reminder">
+            上課時間 <span class="time" id="timeDisplay" onclick="showTimeInput()">10:50</span>
+        </div>
+        <div class="note">請提前 5 分鐘進教室</div>
+        <div class="clock" id="clock">--:--:--</div>
+        <input
+            class="time-input"
+            id="timeInput"
+            type="time"
+            value="00:00"
+            onblur="hideTimeInput()"
+            onchange="updateReminder()"
+        />
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        function showTimeInput() {
+            const timeDisplay = document.getElementById('timeDisplay');
+            const timeInput = document.getElementById('timeInput');
+
+            // 顯示輸入框並設置值
+            timeInput.style.display = 'inline-block';
+            timeInput.value = timeDisplay.textContent;
+            timeInput.focus();
+        }
+
+        function hideTimeInput() {
+            const timeInput = document.getElementById('timeInput');
+            const timeDisplay = document.getElementById('timeDisplay');
+
+            // 隱藏輸入框並同步更新顯示的時間
+            timeInput.style.display = 'none';
+            timeDisplay.textContent = timeInput.value;
+        }
+
+        function updateReminder() {
+            const timeInput = document.getElementById('timeInput');
+            const timeDisplay = document.getElementById('timeDisplay');
+
+            // 更新顯示的時間
+            timeDisplay.textContent = timeInput.value;
+        }
+
+        // 每秒更新一次時鐘
+        setInterval(updateClock, 1000);
+        // 初次加載時立即顯示時間
+        updateClock();
+    </script>
+</body>
+</html>
+
