@@ -79,7 +79,7 @@
 <body>
     <div class="container">
         <div class="reminder">
-            上課時間 <span class="time" id="timeDisplay" onclick="showTimeInput()">10:50</span>
+            上課時間 <span class="time" id="timeDisplay" onclick="showTimeInput()">--:--</span>
         </div>
         <div class="note">請提前 5 分鐘進教室</div>
         <div class="clock" id="clock">--:--:--</div>
@@ -87,7 +87,7 @@
             class="time-input"
             id="timeInput"
             type="time"
-            value="00:00"
+            value=""
             onblur="hideTimeInput()"
             onchange="updateReminder()"
         />
@@ -105,20 +105,21 @@
         function showTimeInput() {
             const timeDisplay = document.getElementById('timeDisplay');
             const timeInput = document.getElementById('timeInput');
-
-            // 顯示輸入框並設置值
+            
+            // 顯示輸入框並設置值，若時間格式正確則帶入，否則留空
             timeInput.style.display = 'inline-block';
-            timeInput.value = timeDisplay.textContent;
+            const current = timeDisplay.textContent.trim();
+            timeInput.value = /^\d{2}:\d{2}$/.test(current) ? current : '';
             timeInput.focus();
         }
 
         function hideTimeInput() {
             const timeInput = document.getElementById('timeInput');
             const timeDisplay = document.getElementById('timeDisplay');
-
-            // 隱藏輸入框並同步更新顯示的時間
+            
+            // 隱藏輸入框並同步更新顯示的時間，若無選擇則顯示占位符
             timeInput.style.display = 'none';
-            timeDisplay.textContent = timeInput.value;
+            timeDisplay.textContent = timeInput.value || '--:--';
         }
 
         function updateReminder() {
@@ -136,4 +137,3 @@
     </script>
 </body>
 </html>
-
