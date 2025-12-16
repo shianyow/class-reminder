@@ -9,6 +9,9 @@
         body {
             font-family: 'Noto Sans TC', Arial, sans-serif;
             background-color: #003f7d; /* 深藍色背景 */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             margin: 0;
             padding: 0;
             display: flex;
@@ -17,6 +20,7 @@
             justify-content: center;
             height: 100vh;
             color: #ffffff; /* 白色字體 */
+            transition: background-image 0.5s ease-in-out;
         }
 
         /* 容器樣式 */
@@ -49,6 +53,16 @@
         .note {
             font-size: 4em; /* 放大字體 */
             margin-bottom: 40px;
+            cursor: pointer;
+            border-bottom: 2px dashed transparent;
+            white-space: pre-line; /* 支援換行 */
+            max-width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .note:hover {
+            border-bottom: 2px dashed rgba(255, 255, 255, 0.5);
         }
 
         /* 時鐘樣式 */
@@ -68,32 +82,320 @@
             border-radius: 5px;
             color: #003f7d;
             background-color: #ffffff; /* 白底低調顯示 */
-            position: absolute;
-            bottom: 20px; /* 放置右下角 */
-            right: 20px; /* 放置右下角 */
-            display: none; /* 初始隱藏 */
-            z-index: 10;
+            margin-bottom: 10px;
+        }
+
+        /* 提示文字輸入框 */
+        .note-input {
+            font-size: 1.5em;
+            padding: 10px;
+            border: 2px solid #003f7d;
+            border-radius: 5px;
+            color: #003f7d;
+            background-color: #ffffff;
+            margin-bottom: 10px;
+            resize: none;
+            width: 100%;
+            box-sizing: border-box;
+            font-family: 'Noto Sans TC', Arial, sans-serif;
+        }
+
+        /* 設定面板 */
+        .settings-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 20px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .settings-panel.show {
+            display: flex;
+        }
+
+        .settings-btn {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #003f7d;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .settings-btn:hover {
+            background-color: #005ba3;
+            transform: scale(1.05);
+        }
+
+        .file-input {
+            display: none;
         }
     </style>
 </head>
 <body>
+    <input type="file" id="bgUpload" class="file-input" accept="image/*" onchange="uploadBackground(event)">
+
     <div class="container">
         <div class="reminder">
-            上課時間 <span class="time" id="timeDisplay" onclick="showTimeInput()">--:--</span>
+            上課時間 <span class="time" id="timeDisplay" onclick="showSettingsPanel()">--:--</span>
         </div>
-        <div class="note">請提前 5 分鐘進教室</div>
+        <div class="note" id="noteDisplay" onclick="showNoteEdit()">請提前 5 分鐘進教室</div>
         <div class="clock" id="clock">--:--:--</div>
+    </div>
+
+    <!-- 設定面板 -->
+    <div class="settings-panel" id="settingsPanel">
         <input
             class="time-input"
             id="timeInput"
             type="time"
             value=""
-            onblur="hideTimeInput()"
             onchange="updateReminder()"
         />
+        <button class="settings-btn" onclick="document.getElementById('bgUpload').click()">上傳背景圖</button>
+        <button class="settings-btn" id="toggleBtn" onclick="toggleBackground()" style="display: none;">切換背景</button>
+        <button class="settings-btn" id="resetBtn" onclick="resetToDefault()" style="display: none;">恢復預設</button>
+    </div>
+
+    <!-- 提示文字編輯面板 -->
+    <div class="settings-panel" id="notePanel">
+        <textarea
+            class="note-input"
+            id="noteInput"
+            rows="2"
+            maxlength="100"
+            placeholder="輸入提示文字（最多兩行）"
+            oninput="updateNote()"
+        ></textarea>
+        <button class="settings-btn" onclick="saveNote()">確定</button>
+        <button class="settings-btn" onclick="resetNote()">恢復預設</button>
     </div>
 
     <script>
+        // 背景切換功能
+        let isShowingImage = false; // 當前是否顯示圖片
+        let customImage = null;
+
+        // 頁面載入時檢查是否有自訂背景
+        function loadCustomBackground() {
+            const stored = localStorage.getItem('customBgImage');
+            if (stored) {
+                customImage = stored;
+                const lastState = localStorage.getItem('lastBgState');
+
+                // 顯示按鈕
+                document.getElementById('toggleBtn').style.display = 'block';
+                document.getElementById('resetBtn').style.display = 'block';
+
+                // 恢復上次的狀態
+                if (lastState === 'image') {
+                    showImage();
+                } else {
+                    showBlue();
+                }
+            } else {
+                // 預設藍底
+                showBlue();
+            }
+        }
+
+        function showImage() {
+            if (customImage) {
+                document.body.style.backgroundImage = `url('${customImage}')`;
+                isShowingImage = true;
+                localStorage.setItem('lastBgState', 'image');
+
+                // 顯示半透明背景框
+                const container = document.querySelector('.container');
+                container.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                container.style.backdropFilter = 'blur(5px)';
+            }
+        }
+
+        function showBlue() {
+            document.body.style.backgroundImage = 'none';
+            document.body.style.backgroundColor = '#003f7d';
+            isShowingImage = false;
+            localStorage.setItem('lastBgState', 'blue');
+
+            // 移除半透明背景框
+            const container = document.querySelector('.container');
+            container.style.backgroundColor = 'transparent';
+            container.style.backdropFilter = 'none';
+        }
+
+        function toggleBackground() {
+            if (isShowingImage) {
+                showBlue();
+            } else {
+                showImage();
+            }
+            hideSettingsPanel();
+        }
+
+        // 上傳背景圖片
+        function uploadBackground(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // 檢查檔案大小（建議小於 5MB）
+            if (file.size > 5 * 1024 * 1024) {
+                console.error('檔案過大:', file.size);
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                try {
+                    const base64Image = e.target.result;
+
+                    // 嘗試儲存到 localStorage
+                    try {
+                        localStorage.setItem('customBgImage', base64Image);
+                    } catch (storageError) {
+                        console.error('localStorage 儲存失敗:', storageError);
+                        // localStorage 可能已滿，嘗試清理並重試
+                        if (storageError.name === 'QuotaExceededError') {
+                            console.log('嘗試清理並重新儲存...');
+                            localStorage.removeItem('customBgImage');
+                            localStorage.setItem('customBgImage', base64Image);
+                        } else {
+                            throw storageError;
+                        }
+                    }
+
+                    customImage = base64Image;
+
+                    // 顯示按鈕
+                    document.getElementById('toggleBtn').style.display = 'block';
+                    document.getElementById('resetBtn').style.display = 'block';
+
+                    // 立即顯示圖片
+                    showImage();
+
+                    // 關閉設定面板
+                    hideSettingsPanel();
+
+                    // 重置 input，確保下次選擇相同檔案也能觸發
+                    event.target.value = '';
+
+                    console.log('背景圖上傳成功');
+                } catch (error) {
+                    console.error('處理圖片時發生錯誤:', error);
+                    event.target.value = '';
+                }
+            };
+
+            reader.onerror = function(error) {
+                console.error('讀取檔案失敗:', error);
+                event.target.value = '';
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        // 恢復預設背景
+        function resetToDefault() {
+            if (confirm('確定要清除自訂背景，恢復藍底嗎？')) {
+                localStorage.removeItem('customBgImage');
+                localStorage.removeItem('lastBgState');
+                customImage = null;
+
+                // 隱藏按鈕
+                document.getElementById('toggleBtn').style.display = 'none';
+                document.getElementById('resetBtn').style.display = 'none';
+
+                // 重置 file input，確保下次可以選擇相同檔案
+                document.getElementById('bgUpload').value = '';
+
+                // 恢復藍底
+                showBlue();
+
+                // 關閉設定面板
+                hideSettingsPanel();
+            }
+        }
+
+        // 提示文字編輯功能
+        function showNoteEdit() {
+            const notePanel = document.getElementById('notePanel');
+            const noteDisplay = document.getElementById('noteDisplay');
+            const noteInput = document.getElementById('noteInput');
+
+            // 顯示編輯面板
+            notePanel.classList.add('show');
+
+            // 設置輸入框的值
+            noteInput.value = noteDisplay.textContent.trim();
+            noteInput.focus();
+        }
+
+        function hideNotePanel() {
+            const notePanel = document.getElementById('notePanel');
+            const noteInput = document.getElementById('noteInput');
+            const noteDisplay = document.getElementById('noteDisplay');
+
+            // 自動保存
+            const trimmedValue = noteInput.value.trim();
+            if (trimmedValue) {
+                noteDisplay.textContent = trimmedValue;
+                localStorage.setItem('customNote', trimmedValue);
+            } else {
+                // 如果內容為空，恢復預設
+                noteDisplay.textContent = '請提前 5 分鐘進教室';
+                localStorage.removeItem('customNote');
+            }
+
+            notePanel.classList.remove('show');
+        }
+
+        function updateNote() {
+            const noteInput = document.getElementById('noteInput');
+            // 限制最多兩行
+            const lines = noteInput.value.split('\n');
+            if (lines.length > 2) {
+                noteInput.value = lines.slice(0, 2).join('\n');
+            }
+        }
+
+        function saveNote() {
+            hideNotePanel();
+        }
+
+        function resetNote() {
+            const defaultNote = '請提前 5 分鐘進教室';
+            const noteDisplay = document.getElementById('noteDisplay');
+            const noteInput = document.getElementById('noteInput');
+
+            noteDisplay.textContent = defaultNote;
+            noteInput.value = defaultNote;
+            localStorage.removeItem('customNote');
+
+            hideNotePanel();
+        }
+
+        function loadCustomNote() {
+            const stored = localStorage.getItem('customNote');
+            if (stored) {
+                document.getElementById('noteDisplay').textContent = stored;
+            }
+        }
+
+        // 頁面載入時執行
+        window.addEventListener('DOMContentLoaded', function() {
+            loadCustomBackground();
+            loadCustomNote();
+        });
+
         function updateClock() {
             const now = new Date();
             const hours = now.getHours().toString().padStart(2, '0');
@@ -102,24 +404,23 @@
             document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
         }
 
-        function showTimeInput() {
+        function showSettingsPanel() {
+            const panel = document.getElementById('settingsPanel');
             const timeDisplay = document.getElementById('timeDisplay');
             const timeInput = document.getElementById('timeInput');
-            
-            // 顯示輸入框並設置值，若時間格式正確則帶入，否則留空
-            timeInput.style.display = 'inline-block';
+
+            // 顯示設定面板
+            panel.classList.add('show');
+
+            // 設置時間輸入框的值
             const current = timeDisplay.textContent.trim();
             timeInput.value = /^\d{2}:\d{2}$/.test(current) ? current : '';
             timeInput.focus();
         }
 
-        function hideTimeInput() {
-            const timeInput = document.getElementById('timeInput');
-            const timeDisplay = document.getElementById('timeDisplay');
-            
-            // 隱藏輸入框並同步更新顯示的時間，若無選擇則顯示占位符
-            timeInput.style.display = 'none';
-            timeDisplay.textContent = timeInput.value || '--:--';
+        function hideSettingsPanel() {
+            const panel = document.getElementById('settingsPanel');
+            panel.classList.remove('show');
         }
 
         function updateReminder() {
@@ -127,8 +428,26 @@
             const timeDisplay = document.getElementById('timeDisplay');
 
             // 更新顯示的時間
-            timeDisplay.textContent = timeInput.value;
+            timeDisplay.textContent = timeInput.value || '--:--';
         }
+
+        // 點擊面板外部時關閉
+        document.addEventListener('click', function(event) {
+            const settingsPanel = document.getElementById('settingsPanel');
+            const notePanel = document.getElementById('notePanel');
+            const timeDisplay = document.getElementById('timeDisplay');
+            const noteDisplay = document.getElementById('noteDisplay');
+
+            // 關閉設定面板
+            if (!settingsPanel.contains(event.target) && !timeDisplay.contains(event.target)) {
+                hideSettingsPanel();
+            }
+
+            // 關閉提示文字編輯面板
+            if (!notePanel.contains(event.target) && !noteDisplay.contains(event.target)) {
+                hideNotePanel();
+            }
+        });
 
         // 每秒更新一次時鐘
         setInterval(updateClock, 1000);
