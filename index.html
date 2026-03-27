@@ -421,10 +421,27 @@
             }
         }
 
+        // 讀取 Query String 參數
+        function loadQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+
+            const time = params.get('time');
+            if (time && /^\d{2}:\d{2}$/.test(time)) {
+                document.getElementById('timeDisplay').textContent = time;
+                document.getElementById('timeInput').value = time;
+            }
+
+            const note = params.get('note');
+            if (note) {
+                document.getElementById('noteDisplay').textContent = note.trim();
+            }
+        }
+
         // 頁面載入時執行
         window.addEventListener('DOMContentLoaded', function () {
             loadCustomBackground();
             loadCustomNote();
+            loadQueryParams();
         });
 
         function updateClock() {
