@@ -11,7 +11,7 @@
             font-family: 'Noto Sans TC', Arial, sans-serif;
             background-color: #003f7d;
             /* 深藍色背景 */
-            background-size: contain;
+            background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             margin: 0;
@@ -37,8 +37,7 @@
 
         /* 提醒樣式 */
         .reminder {
-            font-size: 8em;
-            /* 放大字體 */
+            font-size: clamp(3em, 8vw, 8em);
             font-weight: bold;
             margin-bottom: 40px;
         }
@@ -58,8 +57,7 @@
 
         /* 提示訊息樣式 */
         .note {
-            font-size: 4em;
-            /* 放大字體 */
+            font-size: clamp(1.5em, 4vw, 4em);
             margin-bottom: 40px;
             cursor: pointer;
             border-bottom: 2px dashed transparent;
@@ -76,8 +74,7 @@
 
         /* 時鐘樣式 */
         .clock {
-            font-size: 8em;
-            /* 放大字體 */
+            font-size: clamp(3em, 8vw, 8em);
             font-family: 'Courier New', Courier, monospace;
             /* 等寬字體，電子感 */
             color: #ffcc00;
@@ -478,6 +475,14 @@
             // 更新顯示的時間
             timeDisplay.textContent = timeInput.value || '--:--';
         }
+
+        // 按 ESC 關閉設定面板
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                hideSettingsPanel();
+                hideNotePanel();
+            }
+        });
 
         // 點擊面板外部時關閉
         document.addEventListener('click', function (event) {
