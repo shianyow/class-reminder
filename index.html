@@ -159,15 +159,16 @@
 
     <div class="container">
         <div class="reminder">
-            上課時間 <span class="time" id="timeDisplay" onclick="showSettingsPanel()">--:--</span>
+            上課時間 <span class="time" id="timeDisplay" onclick="showSettingsPanel()"></span>
         </div>
-        <div class="note" id="noteDisplay" onclick="showNoteEdit()">請提前 5 分鐘進教室</div>
+        <div class="note" id="noteDisplay" onclick="showNoteEdit()"></div>
         <div class="clock" id="clock">--:--:--</div>
     </div>
 
     <!-- 設定面板 -->
     <div class="settings-panel" id="settingsPanel">
-        <input class="time-input" id="timeInput" type="time" value="" onchange="updateReminder()" />
+        <input class="time-input" id="timeInput" type="text" inputmode="numeric"
+            maxlength="5" placeholder="HH:MM" oninput="handleTimeInput()" />
         <button class="settings-btn" onclick="document.getElementById('bgUpload').click()">上傳背景圖</button>
         <button class="settings-btn" id="toggleBtn" onclick="toggleBackground()" style="display: none;">切換背景</button>
         <button class="settings-btn" id="textBoxToggleBtn" onclick="toggleTextBox()"
@@ -184,6 +185,9 @@
     </div>
 
     <script>
+        const DEFAULT_TIME = '--:--';
+        const DEFAULT_NOTE = '請提前 5 分鐘進教室';
+
         // 背景切換功能
         let isShowingImage = false; // 當前是否顯示圖片
         let customImage = null;
@@ -379,7 +383,7 @@
                 localStorage.setItem('customNote', trimmedValue);
             } else {
                 // 如果內容為空，恢復預設
-                noteDisplay.textContent = '請提前 5 分鐘進教室';
+                noteDisplay.textContent = DEFAULT_NOTE;
                 localStorage.removeItem('customNote');
             }
 
@@ -400,7 +404,7 @@
         }
 
         function resetNote() {
-            const defaultNote = '請提前 5 分鐘進教室';
+            const defaultNote = DEFAULT_NOTE;
             const noteDisplay = document.getElementById('noteDisplay');
             const noteInput = document.getElementById('noteInput');
 
@@ -413,9 +417,7 @@
 
         function loadCustomNote() {
             const stored = localStorage.getItem('customNote');
-            if (stored) {
-                document.getElementById('noteDisplay').textContent = stored;
-            }
+            document.getElementById('noteDisplay').textContent = stored || DEFAULT_NOTE;
         }
 
         // 讀取 Query String 參數
@@ -436,6 +438,7 @@
 
         // 頁面載入時執行
         window.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('timeDisplay').textContent = DEFAULT_TIME;
             loadCustomBackground();
             loadCustomNote();
             loadQueryParams();
@@ -460,6 +463,7 @@
             // 設置時間輸入框的值
             const current = timeDisplay.textContent.trim();
             timeInput.value = /^\d{2}:\d{2}$/.test(current) ? current : '';
+            timeInput.select();
             timeInput.focus();
         }
 
@@ -468,12 +472,31 @@
             panel.classList.remove('show');
         }
 
-        function updateReminder() {
+        function handleTimeInput() {
             const timeInput = document.getElementById('timeInput');
             const timeDisplay = document.getElementById('timeDisplay');
 
-            // 更新顯示的時間
-            timeDisplay.textContent = timeInput.value || '--:--';
+            // 只保留數字
+            let digits = timeInput.value.replace(/\D/g, '');
+            if (digits.length > 4) digits = digits.slice(0, 4);
+
+            // 自動插入冒號
+            if (digits.length >= 3) {
+                timeInput.value = digits.slice(0, 2) + ':' + digits.slice(2);
+            } else {
+                timeInput.value = digits;
+            }
+
+            // 即時更新顯示
+            if (digits.length === 4) {
+                const hh = digits.slice(0, 2);
+                const mm = digits.slice(2, 4);
+                if (hh <= 23 && mm <= 59) {
+                    timeDisplay.textContent = `${hh}:${mm}`;
+                }
+            } else {
+                timeDisplay.textContent = DEFAULT_TIME;
+            }
         }
 
         // 按 ESC 關閉設定面板
