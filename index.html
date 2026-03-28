@@ -434,6 +434,11 @@
             if (note) {
                 document.getElementById('noteDisplay').textContent = note.trim();
             }
+
+            if (params.get('bg') === 'transparent') {
+                document.body.style.backgroundColor = 'transparent';
+                document.body.style.backgroundImage = 'none';
+            }
         }
 
         // 頁面載入時執行
