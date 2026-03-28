@@ -20,6 +20,17 @@ https://shianyow.github.io/class-reminder/?time=09:00&note=請提前進教室
 |------|------|------|
 | `time` | 上課時間（HH:MM） | `time=09:00` |
 | `note` | 提示文字 | `note=請提前進教室` |
+| `bg` | 背景色（顏色名稱、hex 色碼、`transparent`） | `bg=darkgreen`、`bg=%23003f7d` |
+| `fg` | 字體顏色 | `fg=yellow`、`fg=%23ff6600` |
+| `textbox` | 顯示文字底框 | `textbox` |
+
+### OBS 疊加使用
+
+可作為 OBS 瀏覽器來源疊加在其他畫面上：
+
+```
+https://shianyow.github.io/class-reminder/?time=09:00&bg=transparent&textbox
+```
 
 ## 頁面操作
 

@@ -435,9 +435,21 @@
                 document.getElementById('noteDisplay').textContent = note.trim();
             }
 
-            if (params.get('bg') === 'transparent') {
-                document.body.style.backgroundColor = 'transparent';
+            const bg = params.get('bg');
+            if (bg) {
+                document.body.style.backgroundColor = bg;
                 document.body.style.backgroundImage = 'none';
+            }
+
+            const fg = params.get('fg');
+            if (fg) {
+                document.body.style.color = fg;
+            }
+
+            if (params.has('textbox')) {
+                const container = document.querySelector('.container');
+                container.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                container.style.backdropFilter = 'blur(5px)';
             }
         }
 
