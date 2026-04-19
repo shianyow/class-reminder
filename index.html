@@ -160,6 +160,107 @@
         .file-input {
             display: none;
         }
+
+        /* 次要連結：網址參數說明 */
+        .params-link {
+            color: #003f7d;
+            font-size: 1em;
+            text-align: center;
+            text-decoration: none;
+            opacity: 0.7;
+            margin-top: 4px;
+            transition: opacity 0.2s ease;
+        }
+
+        .params-link:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+
+        /* 參數列表對話框 */
+        .params-modal {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .params-modal.show {
+            display: flex;
+        }
+
+        .params-content {
+            background-color: #ffffff;
+            color: #003f7d;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 800px;
+            max-height: 85vh;
+            width: 100%;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .params-content h2 {
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .params-content h3 {
+            margin-top: 24px;
+            margin-bottom: 8px;
+        }
+
+        .params-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+        }
+
+        .params-content th,
+        .params-content td {
+            padding: 8px 12px;
+            border: 1px solid #d0d7e2;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .params-content th {
+            background-color: #003f7d;
+            color: #ffffff;
+        }
+
+        .params-content code {
+            background-color: #f0f3f8;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+        }
+
+        .params-content pre {
+            background-color: #f0f3f8;
+            padding: 10px 14px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 6px 0 12px;
+        }
+
+        .params-close {
+            float: right;
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #003f7d;
+            line-height: 1;
+        }
     </style>
 </head>
 
@@ -179,10 +280,73 @@
         <input class="time-input" id="timeInput" type="text" inputmode="numeric"
             maxlength="5" placeholder="HH:MM" oninput="handleTimeInput()" />
         <button class="settings-btn" onclick="document.getElementById('bgUpload').click()">上傳背景圖</button>
-        <button class="settings-btn" id="toggleBtn" onclick="toggleBackground()" style="display: none;">切換背景</button>
-        <button class="settings-btn" id="textBoxToggleBtn" onclick="toggleTextBox()"
-            style="display: none;">切換文字底框</button>
-        <button class="settings-btn" id="resetBtn" onclick="resetToDefault()" style="display: none;">恢復預設</button>
+        <button class="settings-btn" id="toggleBtn" onclick="toggleBackground()" style="display: none;">顯示背景圖</button>
+        <button class="settings-btn" id="resetBtn" onclick="resetToDefault()" style="display: none;">移除背景圖</button>
+        <a class="params-link" href="#" onclick="showParamsModal(); return false;">網址參數說明 ›</a>
+    </div>
+
+    <!-- 網址參數說明 -->
+    <div class="params-modal" id="paramsModal" onclick="hideParamsModal()">
+        <div class="params-content" onclick="event.stopPropagation()">
+            <button class="params-close" onclick="hideParamsModal()" title="關閉">×</button>
+            <h2>網址參數說明</h2>
+            <p>在網址後面加上 <code>?</code> 與參數，即可預設畫面內容。多個參數用 <code>&amp;</code> 串接。</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>參數</th>
+                        <th>說明</th>
+                        <th>範例</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>time</code></td>
+                        <td>上課時間（<code>HH:MM</code>）</td>
+                        <td><code>time=09:00</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>note</code></td>
+                        <td>提示文字</td>
+                        <td><code>note=請提前進教室</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>bg</code></td>
+                        <td>背景色（名稱、hex、<code>transparent</code>）</td>
+                        <td><code>bg=darkgreen</code><br><code>bg=transparent</code><br><code>bg=%23003f7d</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>fg</code></td>
+                        <td>字體顏色（名稱或 hex）</td>
+                        <td><code>fg=yellow</code><br><code>fg=%23ff6600</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>textbox</code></td>
+                        <td>顯示文字底框，可選填透明度 0~1（預設 0.3）</td>
+                        <td><code>textbox</code><br><code>textbox=0.6</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>shadow</code></td>
+                        <td>啟用文字陰影</td>
+                        <td><code>shadow</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>使用 hex 色碼時，<code>#</code> 需編碼為 <code>%23</code>。</p>
+
+            <h3>常見組合</h3>
+
+            <p>OBS 疊加（透明背景 + 底框 + 陰影）：</p>
+            <pre>?time=09:00&amp;bg=transparent&amp;textbox&amp;shadow</pre>
+
+            <p>自訂配色：</p>
+            <pre>?time=09:00&amp;bg=darkgreen&amp;fg=white</pre>
+
+            <p>投影在圖片上（半透明底框增加對比）：</p>
+            <pre>?time=09:00&amp;bg=transparent&amp;textbox=0.6&amp;shadow</pre>
+        </div>
     </div>
 
     <!-- 提示文字編輯面板 -->
@@ -196,19 +360,16 @@
     <script>
         const DEFAULT_TIME = '--:--';
         const DEFAULT_NOTE = '請提前 5 分鐘進教室';
+        const DEFAULT_BG = '#003f7d';
 
-        // 背景切換功能
+        // 背景狀態
         let isShowingImage = false; // 當前是否顯示圖片
         let customImage = null;
-        let isTextBoxVisible = false; // 文字底框狀態
+        let defaultBg = DEFAULT_BG; // 預設背景色（可被 bg 參數覆蓋）
 
         // 頁面載入時檢查是否有自訂背景
         function loadCustomBackground() {
             const stored = localStorage.getItem('customBgImage');
-
-            // 讀取文字底框設定
-            const textBoxSetting = localStorage.getItem('textBoxVisible');
-            isTextBoxVisible = textBoxSetting === 'true'; // 預設為 false (不顯示)
 
             if (stored) {
                 customImage = stored;
@@ -216,65 +377,49 @@
 
                 // 顯示按鈕
                 document.getElementById('toggleBtn').style.display = 'block';
-                document.getElementById('textBoxToggleBtn').style.display = 'block';
                 document.getElementById('resetBtn').style.display = 'block';
 
                 // 恢復上次的狀態
                 if (lastState === 'image') {
                     showImage();
                 } else {
-                    showBlue();
+                    showDefaultBg();
                 }
             } else {
-                // 預設藍底
-                showBlue();
+                showDefaultBg();
             }
         }
 
         function showImage() {
             if (customImage) {
                 document.body.style.backgroundImage = `url('${customImage}')`;
-                document.body.style.backgroundColor = 'black'; // 背景改為黑色
+                document.body.style.backgroundColor = 'black';
                 isShowingImage = true;
                 localStorage.setItem('lastBgState', 'image');
-
-                updateTextBoxState();
+                updateToggleBtnLabel();
             }
         }
 
-        function showBlue() {
+        function showDefaultBg() {
             document.body.style.backgroundImage = 'none';
-            document.body.style.backgroundColor = '#003f7d';
+            document.body.style.backgroundColor = defaultBg;
             isShowingImage = false;
-            localStorage.setItem('lastBgState', 'blue');
+            localStorage.setItem('lastBgState', 'default');
+            updateToggleBtnLabel();
+        }
 
-            updateTextBoxState();
+        function updateToggleBtnLabel() {
+            const btn = document.getElementById('toggleBtn');
+            if (btn) btn.textContent = isShowingImage ? '隱藏背景圖' : '顯示背景圖';
         }
 
         function toggleBackground() {
             if (isShowingImage) {
-                showBlue();
+                showDefaultBg();
             } else {
                 showImage();
             }
             hideSettingsPanel();
-        }
-
-        function toggleTextBox() {
-            isTextBoxVisible = !isTextBoxVisible;
-            localStorage.setItem('textBoxVisible', isTextBoxVisible);
-            updateTextBoxState();
-        }
-
-        function updateTextBoxState() {
-            const container = document.querySelector('.container');
-            if (isShowingImage && isTextBoxVisible) {
-                container.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
-                container.style.backdropFilter = 'blur(5px)';
-            } else {
-                container.style.backgroundColor = 'transparent';
-                container.style.backdropFilter = 'none';
-            }
         }
 
         // 上傳背景圖片
@@ -317,7 +462,6 @@
 
                     // 顯示按鈕
                     document.getElementById('toggleBtn').style.display = 'block';
-                    document.getElementById('textBoxToggleBtn').style.display = 'block';
                     document.getElementById('resetBtn').style.display = 'block';
 
                     // 立即顯示圖片
@@ -346,7 +490,7 @@
 
         // 恢復預設背景
         function resetToDefault() {
-            if (confirm('確定要清除自訂背景，恢復藍底嗎？')) {
+            if (confirm('確定要移除背景圖嗎？')) {
                 localStorage.removeItem('customBgImage');
                 localStorage.removeItem('lastBgState');
                 customImage = null;
@@ -358,8 +502,8 @@
                 // 重置 file input，確保下次可以選擇相同檔案
                 document.getElementById('bgUpload').value = '';
 
-                // 恢復藍底
-                showBlue();
+                // 恢復預設背景
+                showDefaultBg();
 
                 // 關閉設定面板
                 hideSettingsPanel();
@@ -446,8 +590,12 @@
 
             const bg = params.get('bg');
             if (bg) {
-                document.body.style.backgroundColor = bg;
-                document.body.style.backgroundImage = 'none';
+                defaultBg = bg;
+                // 沒有顯示自訂圖片時，立即套用
+                if (!isShowingImage) {
+                    document.body.style.backgroundColor = bg;
+                    document.body.style.backgroundImage = 'none';
+                }
             }
 
             const fg = params.get('fg');
@@ -531,11 +679,22 @@
             }
         }
 
+        // 參數說明對話框
+        function showParamsModal() {
+            document.getElementById('paramsModal').classList.add('show');
+            hideSettingsPanel();
+        }
+
+        function hideParamsModal() {
+            document.getElementById('paramsModal').classList.remove('show');
+        }
+
         // 按 ESC 關閉設定面板
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 hideSettingsPanel();
                 hideNotePanel();
+                document.getElementById('paramsModal').classList.remove('show');
             }
         });
 
