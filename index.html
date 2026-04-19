@@ -42,6 +42,15 @@
             margin-bottom: 40px;
         }
 
+        /* 文字陰影（透過 shadow 參數啟用） */
+        .shadow .reminder,
+        .shadow .note {
+            text-shadow:
+                0 0 10px rgba(0, 0, 0, 0.9),
+                0 0 20px rgba(0, 0, 0, 0.7),
+                0 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
         /* 時間文字樣式 */
         .time {
             cursor: pointer;
@@ -448,8 +457,14 @@
 
             if (params.has('textbox')) {
                 const container = document.querySelector('.container');
-                container.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                const opacity = parseFloat(params.get('textbox'));
+                const alpha = (opacity >= 0 && opacity <= 1) ? opacity : 0.3;
+                container.style.backgroundColor = `rgba(0, 0, 0, ${alpha})`;
                 container.style.backdropFilter = 'blur(5px)';
+            }
+
+            if (params.has('shadow')) {
+                document.body.classList.add('shadow');
             }
         }
 
