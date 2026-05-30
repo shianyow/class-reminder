@@ -51,15 +51,17 @@
                 0 2px 4px rgba(0, 0, 0, 0.8);
         }
 
-        /* 時間文字樣式 */
-        .time {
+        /* 時間 / 標題文字樣式 */
+        .time,
+        .title {
             cursor: pointer;
-            /* 提示用戶時間可點擊 */
+            /* 提示用戶可點擊 */
             border-bottom: 2px dashed transparent;
             /* 虛線下劃線 */
         }
 
-        .time:hover {
+        .time:hover,
+        .title:hover {
             border-bottom: 2px dashed #ffffff;
             /* 鼠標懸停時顯示下劃線 */
         }
@@ -278,7 +280,8 @@
 
     <div class="container">
         <div class="reminder">
-            上課時間 <span class="time" id="timeDisplay" onclick="showSettingsPanel()"></span>
+            <span class="title" id="titleDisplay" onclick="showTitleEdit()"></span>
+            <span class="time" id="timeDisplay" onclick="showSettingsPanel()"></span>
         </div>
         <div class="note" id="noteDisplay" onclick="showNoteEdit()"></div>
         <div class="clock" id="clock">--:--:--</div>
@@ -314,6 +317,11 @@
                         <td><code>time</code></td>
                         <td>上課時間（<code>HH:MM</code>）</td>
                         <td><code>time=09:00</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>title</code></td>
+                        <td>標題文字（預設「上課時間」）</td>
+                        <td><code>title=考試時間</code></td>
                     </tr>
                     <tr>
                         <td><code>note</code></td>
@@ -367,8 +375,16 @@
         <button class="settings-btn" onclick="resetNote()">恢復預設</button>
     </div>
 
+    <!-- 標題編輯面板 -->
+    <div class="settings-panel" id="titlePanel">
+        <input class="note-input" id="titleInput" maxlength="20" placeholder="輸入標題（例：上課時間）" />
+        <button class="settings-btn" onclick="saveTitle()">確定</button>
+        <button class="settings-btn" onclick="resetTitle()">恢復預設</button>
+    </div>
+
     <script>
         const DEFAULT_TIME = '--:--';
+        const DEFAULT_TITLE = '上課時間';
         const DEFAULT_NOTE = '請提前 5 分鐘進教室';
         const DEFAULT_BG = '#003f7d';
 
@@ -583,6 +599,60 @@
             document.getElementById('noteDisplay').textContent = stored || DEFAULT_NOTE;
         }
 
+        // 標題編輯功能
+        function showTitleEdit() {
+            const titlePanel = document.getElementById('titlePanel');
+            const titleDisplay = document.getElementById('titleDisplay');
+            const titleInput = document.getElementById('titleInput');
+
+            // 顯示編輯面板
+            titlePanel.classList.add('show');
+
+            // 設置輸入框的值
+            titleInput.value = titleDisplay.textContent.trim();
+            titleInput.select();
+            titleInput.focus();
+        }
+
+        function hideTitlePanel() {
+            const titlePanel = document.getElementById('titlePanel');
+            const titleInput = document.getElementById('titleInput');
+            const titleDisplay = document.getElementById('titleDisplay');
+
+            // 自動保存
+            const trimmedValue = titleInput.value.trim();
+            if (trimmedValue) {
+                titleDisplay.textContent = trimmedValue;
+                localStorage.setItem('customTitle', trimmedValue);
+            } else {
+                // 如果內容為空，恢復預設
+                titleDisplay.textContent = DEFAULT_TITLE;
+                localStorage.removeItem('customTitle');
+            }
+
+            titlePanel.classList.remove('show');
+        }
+
+        function saveTitle() {
+            hideTitlePanel();
+        }
+
+        function resetTitle() {
+            const titleDisplay = document.getElementById('titleDisplay');
+            const titleInput = document.getElementById('titleInput');
+
+            titleDisplay.textContent = DEFAULT_TITLE;
+            titleInput.value = DEFAULT_TITLE;
+            localStorage.removeItem('customTitle');
+
+            hideTitlePanel();
+        }
+
+        function loadCustomTitle() {
+            const stored = localStorage.getItem('customTitle');
+            document.getElementById('titleDisplay').textContent = stored || DEFAULT_TITLE;
+        }
+
         // 讀取 Query String 參數
         function loadQueryParams() {
             const params = new URLSearchParams(window.location.search);
@@ -591,6 +661,11 @@
             if (time && /^\d{2}:\d{2}$/.test(time)) {
                 document.getElementById('timeDisplay').textContent = time;
                 document.getElementById('timeInput').value = time;
+            }
+
+            const title = params.get('title');
+            if (title) {
+                document.getElementById('titleDisplay').textContent = title.trim();
             }
 
             const note = params.get('note');
@@ -630,6 +705,7 @@
         window.addEventListener('DOMContentLoaded', function () {
             document.getElementById('timeDisplay').textContent = DEFAULT_TIME;
             loadCustomBackground();
+            loadCustomTitle();
             loadCustomNote();
             loadQueryParams();
         });
@@ -704,6 +780,7 @@
             if (e.key === 'Escape') {
                 hideSettingsPanel();
                 hideNotePanel();
+                hideTitlePanel();
                 document.getElementById('paramsModal').classList.remove('show');
             }
         });
@@ -712,8 +789,10 @@
         document.addEventListener('click', function (event) {
             const settingsPanel = document.getElementById('settingsPanel');
             const notePanel = document.getElementById('notePanel');
+            const titlePanel = document.getElementById('titlePanel');
             const timeDisplay = document.getElementById('timeDisplay');
             const noteDisplay = document.getElementById('noteDisplay');
+            const titleDisplay = document.getElementById('titleDisplay');
 
             // 關閉設定面板
             if (!settingsPanel.contains(event.target) && !timeDisplay.contains(event.target)) {
@@ -723,6 +802,11 @@
             // 關閉提示文字編輯面板
             if (!notePanel.contains(event.target) && !noteDisplay.contains(event.target)) {
                 hideNotePanel();
+            }
+
+            // 關閉標題編輯面板
+            if (!titlePanel.contains(event.target) && !titleDisplay.contains(event.target)) {
+                hideTitlePanel();
             }
         });
 
